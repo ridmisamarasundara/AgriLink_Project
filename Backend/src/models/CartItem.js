@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+ const mongoose = require("mongoose");
 
 const cartItemSchema = new mongoose.Schema(
   {
@@ -22,7 +22,7 @@ cartItemSchema.methods.toSafeJSON = function () {
           image: this.product.imageUrl,
           vendor: this.product.vendorName,
 
-          // ✅ IMPORTANT: send vendorId to frontend (chat needs it)
+           
           vendorId: this.product.vendor ? this.product.vendor.toString() : null,
 
           category: this.product.category,

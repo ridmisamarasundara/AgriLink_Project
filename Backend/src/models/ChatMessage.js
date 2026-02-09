@@ -1,9 +1,9 @@
-const mongoose = require("mongoose");
+ const mongoose = require("mongoose");
 
 const chatMessageSchema = new mongoose.Schema(
   {
     thread: { type: mongoose.Schema.Types.ObjectId, ref: "ChatThread", required: true },
-    sender: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // ✅ sender
+    sender: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },  
     text: { type: String, required: true, trim: true },
   },
   { timestamps: true }
@@ -12,8 +12,7 @@ const chatMessageSchema = new mongoose.Schema(
 chatMessageSchema.methods.toSafeJSON = function () {
   return {
     id: this._id.toString(),
-    threadId: this.thread.toString(),
-    senderId: this.sender.toString(), // ✅ expose as senderId for frontend
+    threadId: this.thread.toString(), 
     text: this.text,
     createdAt: this.createdAt,
   };
