@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiDelete } from "./api";
+ import { apiGet, apiPost, apiDelete } from "./api";
 
 export const addToCart = (productId, quantity) =>
   apiPost("/api/cart/add", { productId, quantity });

@@ -1,4 +1,4 @@
-const path = require("path");
+ const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, ".env"), override: true });
 
 const express = require("express");
@@ -35,3 +35,26 @@ app.use("/api/orders", orderRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, "0.0.0.0", () => console.log(`Server running on port ${PORT}`));
+
+// after 2 days as Surplus
+const Product = require("./src/models/Product");
+const markOldProductsSurplus = async () => {
+  try {
+    const cutoff = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000); 
+    const res = await Product.updateMany(
+      { type: { $ne: "Surplus" }, createdAt: { $lte: cutoff } },
+      { $set: { type: "Surplus" } }
+    );
+    if (res.modifiedCount && res.modifiedCount > 0) {
+      console.log(`Marked ${res.modifiedCount} product(s) as Surplus`);
+    }
+  } catch (e) {
+    console.error("Error marking old products as Surplus:", e.message);
+  }
+};
+
+// Run every 24 hours
+markOldProductsSurplus().catch(() => {});
+setInterval(() => {
+  markOldProductsSurplus().catch(() => {});
+}, 24 * 60 * 60 * 1000);

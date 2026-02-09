@@ -1,125 +1,21 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { apiGet, apiPost } from "./api";
 
-const BASE_URL = "http://192.168.8.143:5000";
+// open cart chat
+export const openChatByProduct = async (productId, buyerId = null) =>
+  apiPost("/api/chats/open-by-product", { productId, buyerId });
 
-const buildHeaders = async () => {
-  const token = await AsyncStorage.getItem("token");
-  const headers = { "Content-Type": "application/json" };
+// msg icon
+export const getMyThreads = async () =>
+  apiGet("/api/chats/threads/mine");
 
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-    console.log("🔑 Token added to headers");
-  } else {
-    console.log("⚠️ No token found in AsyncStorage");
-  }
+// msg
+export const getThreadMessages = async (threadId) =>
+  apiGet(`/api/chats/threads/${threadId}/messages`);
 
-  return headers;
-};
+// send msg
+export const sendMessage = async (threadId, text) =>
+  apiPost(`/api/chats/threads/${threadId}/messages`, { text });
 
-const safeJson = async (res) => {
-  try {
-    return await res.json();
-  } catch {
-    return {};
-  }
-};
-
-export const apiGet = async (path) => {
-  const headers = await buildHeaders();
-  console.log("📤 GET", path);
-
-  let res;
-  try {
-    res = await fetch(`${BASE_URL}${path}`, { method: "GET", headers });
-  } catch (e) {
-    throw new Error("Network error: cannot reach backend (check IP/WiFi/firewall).");
-  }
-
-  const data = await safeJson(res);
-
-  if (!res.ok) {
-    console.log("❌ GET failed:", data);
-    throw new Error(data?.error || data?.message || `Request failed (${res.status})`);
-  }
-
-  console.log("✅ GET", path, "success:", data);
-  return data;
-};
-
-export const apiPost = async (path, body) => {
-  const headers = await buildHeaders();
-  console.log("📤 POST", path);
-
-  let res;
-  try {
-    res = await fetch(`${BASE_URL}${path}`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(body),
-    });
-  } catch (e) {
-    throw new Error("Network error: cannot reach backend (check IP/WiFi/firewall).");
-  }
-
-  const data = await safeJson(res);
-
-  if (!res.ok) {
-    console.log("❌ POST failed:", data);
-    throw new Error(data?.error || data?.message || `Request failed (${res.status})`);
-  }
-
-  console.log("✅ POST", path, "success:", data);
-  return data;
-};
-
-export const apiPut = async (path, body) => {
-  const headers = await buildHeaders();
-  console.log("📤 PUT", path);
-
-  let res;
-  try {
-    res = await fetch(`${BASE_URL}${path}`, {
-      method: "PUT",
-      headers,
-      body: JSON.stringify(body),
-    });
-  } catch (e) {
-    throw new Error("Network error: cannot reach backend (check IP/WiFi/firewall).");
-  }
-
-  const data = await safeJson(res);
-
-  if (!res.ok) {
-    console.log("❌ PUT failed:", data);
-    throw new Error(data?.error || data?.message || `Request failed (${res.status})`);
-  }
-
-  console.log("✅ PUT", path, "success:", data);
-  return data;
-};
-
-
-export const apiDelete = async (path) => {
-  const headers = await buildHeaders();
-  console.log("📤 DELETE", path);
-
-  let res;
-  try {
-    res = await fetch(`${BASE_URL}${path}`, {
-      method: "DELETE",
-      headers,
-    });
-  } catch (e) {
-    throw new Error("Network error: cannot reach backend (check IP/WiFi/firewall).");
-  }
-
-  const data = await safeJson(res);
-
-  if (!res.ok) {
-    console.log("❌ DELETE failed:", data);
-    throw new Error(data?.error || data?.message || `Request failed (${res.status})`);
-  }
-
-  console.log("✅ DELETE", path, "success:", data);
-  return data;
-};
+// mark seen 
+export const markThreadSeen = async (threadId) =>
+  apiPost(`/api/chats/threads/${threadId}/seen`, {});

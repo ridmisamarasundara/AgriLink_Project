@@ -1,13 +1,13 @@
-const ChatThread = require("../models/ChatThread");
+ const ChatThread = require("../models/ChatThread");
 const ChatMessage = require("../models/ChatMessage");
 const Product = require("../models/Product");
 const mongoose = require("mongoose");
 
-// open in cart page
+// open cart page
 exports.openByProduct = async (req, res) => {
   try {
     const me = req.userId;
-    const { productId } = req.body;
+    const { productId, buyerId } = req.body;
 
     if (!productId) return res.status(400).json({ message: "productId is required" });
     if (!mongoose.Types.ObjectId.isValid(productId)) {
@@ -20,12 +20,25 @@ exports.openByProduct = async (req, res) => {
     const vendorId = product.vendor;
     if (!vendorId) return res.status(400).json({ message: "Vendor missing for product" });
 
-    let thread = await ChatThread.findOne({ product: productId, buyer: me, vendor: vendorId });
+    let threadBuyer = me;
+    if (buyerId) {
+      if (!mongoose.Types.ObjectId.isValid(buyerId)) {
+        return res.status(400).json({ message: "Invalid buyerId" });
+      }
+
+      if (String(me) !== String(vendorId)) {
+        return res.status(403).json({ message: "Only the vendor can open a thread for a specific buyer" });
+      }
+
+      threadBuyer = buyerId;
+    }
+
+    let thread = await ChatThread.findOne({ product: productId, buyer: threadBuyer, vendor: vendorId });
 
     if (!thread) {
       thread = await ChatThread.create({
         product: productId,
-        buyer: me,
+        buyer: threadBuyer,
         vendor: vendorId,
         lastMessageText: "",
         lastMessageSenderId: null,
@@ -49,15 +62,14 @@ exports.openByProduct = async (req, res) => {
   }
 };
 
-// message icon
 exports.myThreads = async (req, res) => {
   try {
     const me = req.userId;
 
     const threads = await ChatThread.find({ $or: [{ buyer: me }, { vendor: me }] })
       .sort({ lastMessageAt: -1, updatedAt: -1 })
-      .populate("buyer", "name")
-      .populate("vendor", "name")
+      .populate("buyer", "name profileImage")
+      .populate("vendor", "name profileImage")
       .populate("product", "name imageUrl");
 
     const safe = threads.map((t) => {
@@ -75,7 +87,9 @@ exports.myThreads = async (req, res) => {
 
       return {
         id: t._id.toString(),
-        otherUser: other ? { id: other._id.toString(), name: other.name } : { id: "", name: "User" },
+        otherUser: other
+          ? { id: other._id.toString(), name: other.name, image: other.profileImage || "" }
+          : { id: "", name: "User", image: "" },
         product: t.product
           ? { id: t.product._id.toString(), name: t.product.name, image: t.product.imageUrl || "" }
           : { id: "", name: "" },
