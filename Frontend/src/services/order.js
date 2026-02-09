@@ -1,5 +1,4 @@
-// Frontend/src/services/order.js
-import { apiPost, apiGet, apiPut } from "./api";
+ import { apiPost, apiGet, apiPut } from "./api";
 
 export const placeOrderFromCart = async (cartItemIds) => {
   try {
@@ -9,6 +8,18 @@ export const placeOrderFromCart = async (cartItemIds) => {
     return response;
   } catch (error) {
     console.error("❌ placeOrderFromCart - error:", error.message);
+    throw error;
+  }
+};
+
+export const getBuyerOrders = async () => {
+  try {
+    console.log("📥 getBuyerOrders - calling API...");
+    const response = await apiGet("/api/orders/buyer/orders");
+    console.log("✅ getBuyerOrders - response:", response);
+    return response;
+  } catch (error) {
+    console.error("❌ getBuyerOrders - error:", error.message);
     throw error;
   }
 };

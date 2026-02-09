@@ -1,4 +1,4 @@
-const router = require("express").Router();
+ const router = require("express").Router();
 const auth = require("../middleware/auth.middleware");
 const chat = require("../controllers/chat.controller");
 

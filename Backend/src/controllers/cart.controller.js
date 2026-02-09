@@ -1,4 +1,4 @@
-const CartItem = require("../models/CartItem");
+ const CartItem = require("../models/CartItem");
 const Product = require("../models/Product");
 const mongoose = require("mongoose");
 

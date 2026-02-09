@@ -1,4 +1,4 @@
-const Order = require("../models/Order");
+ const Order = require("../models/Order");
 const CartItem = require("../models/CartItem");
 const Product = require("../models/Product");
 const mongoose = require("mongoose");
@@ -212,6 +212,42 @@ exports.rejectOrder = async (req, res) => {
       message: "Order rejected",
       order: { id: order._id.toString(), status: order.status },
     });
+  } catch (e) {
+    return res.status(500).json({ message: "Server error", error: e.message });
+  }
+};
+
+exports.getBuyerOrders = async (req, res) => {
+  try {
+    const buyerId = req.userId;
+    if (!buyerId) return res.status(401).json({ message: "Unauthorized (missing userId)" });
+
+    const orders = await Order.find({ buyer: buyerId })
+      .sort({ createdAt: -1 });
+
+    const buyerOrders = orders.map((order) => {
+      const total = (order.items || []).reduce(
+        (sum, item) => sum + Number(item.price) * Number(item.quantity),
+        0
+      );
+
+      return {
+        id: order._id.toString(),
+        buyerId: order.buyer?.toString(),
+        items: (order.items || []).map((item) => ({
+          productId: item.product?.toString(),
+          name: item.name,
+          image: item.image,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        total: total,
+        status: String(order.status || "").toUpperCase(),
+        createdAt: order.createdAt,
+      };
+    });
+
+    return res.json({ orders: buyerOrders, total: buyerOrders.length, hasMore: false });
   } catch (e) {
     return res.status(500).json({ message: "Server error", error: e.message });
   }
